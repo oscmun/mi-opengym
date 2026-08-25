@@ -1032,6 +1032,51 @@ function TopWeight({ entryIdx, close }) {
 }
 export const topWeightSheet = entryIdx => ui().openSheet(close => <TopWeight entryIdx={entryIdx} close={close} />)
 
+// Editing a note mid-workout, not just from the routine editor (issue: the note only had a
+// home in RoutineEdit's config sheet, so an exercise with none looked like it had no way to
+// ever get one short of leaving the workout screen). Best-effort write-back to the routine:
+// only when the exercise appears in it exactly once, since an exercise added or removed
+// mid-session (Workout.jsx's own "Add/Remove exercise") breaks any positional match back to
+// r.ex, and a duplicate id in the same routine leaves no way to tell which one this is.
+function NoteEdit({ entryIdx, close }) {
+  const st = useStore(s => s.S)
+  const A = st.active
+  const entry = A ? A.entries[entryIdx] : null
+  const [v, setV] = useState(entry ? (entry.target?.note || '') : '')
+  useEffect(() => { if (!entry) close() }, [!entry])
+  if (!entry) return null
+  const ex = EXIDX[entry.id]
+
+  const save = () => {
+    const note = v.trim().slice(0, 500)
+    close()
+    update(s => {
+      const e = s.active?.entries[entryIdx]
+      if (!e) return
+      e.target = e.target || {}
+      if (note) e.target.note = note
+      else delete e.target.note
+      const r = s.active.routineId && s.routines.find(x => x.id === s.active.routineId)
+      if (r) {
+        const matches = r.ex.filter(x => x.id === entry.id)
+        if (matches.length === 1) {
+          if (note) matches[0].note = note
+          else delete matches[0].note
+        }
+      }
+    })
+  }
+  return <>
+    <h3 className="capitalize">{t('Note')} — {exerciseNameFor(ex)}</h3>
+    <textarea className="input" rows={4} maxLength={500} autoFocus
+      placeholder={t('Note (optional) — loading cues, "bar only then +1 plate/side each set", anything worth remembering here')}
+      value={v} onChange={e => setV(e.target.value)} />
+    <div style={{ height: 14 }} />
+    <Button variant="primary" onClick={save}>{t('Save')}</Button>
+  </>
+}
+export const noteSheet = entryIdx => ui().openSheet(close => <NoteEdit entryIdx={entryIdx} close={close} />)
+
 /* Drop-set drops and rest-pause bursts are edited inline on the set row itself (Workout.jsx) —
    no sheet, no timer. A planned exercise (see the "Intensifier" config below) arrives with them
    already computed via applyIntensifierPlan; an unplanned straight set can still grow one live
