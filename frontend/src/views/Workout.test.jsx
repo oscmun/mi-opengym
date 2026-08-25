@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => {
     startRest: vi.fn(),
     stopRest: vi.fn(),
     topWeightSheet: vi.fn(),
+    exercisePicker: vi.fn(),
+    exConfigSheet: vi.fn(),
   }
   state.storeSnapshot = () => ({
     S: state.S,
@@ -39,8 +41,8 @@ vi.mock('../store/useUI.js', () => {
 vi.mock('react-router-dom', () => ({ useNavigate: () => () => {} }))
 vi.mock('../sheets.jsx', () => ({
   startFlow: vi.fn(),
-  exercisePicker: vi.fn(),
-  exConfigSheet: vi.fn(),
+  exercisePicker: mocks.exercisePicker,
+  exConfigSheet: mocks.exConfigSheet,
   exerciseDetailSheet: vi.fn(),
   topWeightSheet: mocks.topWeightSheet,
   finishWorkout: vi.fn(),
@@ -152,6 +154,64 @@ describe('Workout set completion flow', () => {
     expect(mocks.topWeightSheet).toHaveBeenCalledWith(1)
     expect(mocks.S.active.cur).toBe(1)
     expect(mocks.startRest).toHaveBeenCalledWith(90)
+  })
+
+  it('finishes a warm-up-only entry without confirming or persisting a working weight', async () => {
+    const entry = exercise('warmup-only', [], {
+      target: { phases: ['warmup'], mode: 'reps', reps: 8, weight: 20 },
+      sets: [{ phase: 'warmup', w: 20, r: 8, done: false }],
+    })
+    await mount([entry])
+    await toggleSet(0)
+
+    expect(mocks.topWeightSheet).not.toHaveBeenCalled()
+    expect(mocks.S.active.entries[0]).not.toHaveProperty('topW')
+    expect(mocks.S.exWeights).toEqual({})
+  })
+})
+
+describe('Workout phase-aware set addition', () => {
+  it('uses the selected warm-up-only phase at the real Add set button', async () => {
+    const entry = exercise('phase-only', [], {
+      target: { phases: ['warm-up'], mode: 'reps', reps: 8, weight: 20 },
+      sets: [
+        { phase: 'warmup', w: 15, r: 10, done: true, note: 'keep' },
+        { phase: 'work', w: 60, r: 5, done: true },
+      ],
+    })
+    await mount([entry])
+    const button = [...container.querySelectorAll('button')]
+      .find(node => node.textContent.includes('Add set'))
+    expect(button).toBeTruthy()
+
+    await act(async () => { button.dispatchEvent(new dom.Event('click', { bubbles: true })) })
+
+    expect(mocks.S.active.entries[0].sets.at(-1)).toEqual({
+      phase: 'warmup', w: 15, r: 10, done: false, note: 'keep',
+    })
+  })
+
+  it('keeps the planned warm-up ramp exactly once at the real Add exercise boundary', async () => {
+    await mount([])
+    mocks.S.active.routineId = 'routine'
+    mocks.S.routines = [{ id: 'routine', ex: [] }]
+
+    const button = [...container.querySelectorAll('button')]
+      .find(node => node.textContent.includes('Add exercise'))
+    expect(button).toBeTruthy()
+    await act(async () => { button.dispatchEvent(new dom.Event('click', { bubbles: true })) })
+
+    const pickExercise = mocks.exercisePicker.mock.calls[0][0]
+    await act(async () => { pickExercise({ id: '0025' }) })
+    const saveConfig = mocks.exConfigSheet.mock.calls[0][2]
+    await act(async () => {
+      saveConfig({ mode: 'reps', sets: 1, reps: 5, weight: 100, warmupSets: 3 })
+    })
+
+    const rows = mocks.S.active.entries[0].sets
+    expect(rows.filter(row => row.phase === 'warmup').map(row => row.w)).toEqual([50, 75, 87.5])
+    expect(rows.filter(row => row.phase === 'work').map(row => row.w)).toEqual([100])
+    expect(rows.every(row => row.w > 0 && row.r > 0)).toBe(true)
   })
 })
 

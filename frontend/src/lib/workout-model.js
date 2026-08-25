@@ -22,6 +22,62 @@ export function isWarmupRow(set) {
   return phaseForSet(set) === 'warmup'
 }
 
+/** Normalize an optional ordered phase selection without treating unknown values as work. */
+export function normalizePhaseList(value, fallback = null) {
+  if (value == null || value === '') {
+    return fallback == null ? null : normalizePhaseList(fallback)
+  }
+  const raw = Array.isArray(value) ? value : String(value).split(/[,+]/)
+  const phases = []
+  raw.forEach(item => {
+    const token = typeof item === 'string' ? item.trim().toLowerCase() : ''
+    const phase = ['warmup', 'warm-up', 'warm_up'].includes(token)
+      ? 'warmup' : token === 'work' ? 'work' : null
+    if (phase && !phases.includes(phase)) phases.push(phase)
+  })
+  return phases
+}
+
+export function isWarmupOnlyTarget(input = {}, fallback = {}) {
+  const source = objectOf(input)
+  const defaults = objectOf(fallback)
+  const phases = normalizePhaseList(
+    Object.prototype.hasOwnProperty.call(source, 'phases') ? source.phases : defaults.phases,
+  )
+  return phases != null && !phases.includes('work')
+}
+
+function phaseForTarget(target = {}, fallback = 'work') {
+  const source = objectOf(target)
+  if (source.phase != null || source.warmup === true) return phaseForSet(source, fallback)
+  return isWarmupOnlyTarget(source) ? 'warmup' : phaseForSet({}, fallback)
+}
+
+/** Canonical phase write for a planned block; source and unknown fields are preserved. */
+export function normalizePlannedSet(input, defaults = {}) {
+  const source = objectOf(input)
+  const target = objectOf(source.target)
+  const phase = phaseForSet(source, phaseForTarget(target, phaseForTarget(defaults)))
+  return { ...source, phase, target: { ...target, phase } }
+}
+
+/** Canonical phase write for a logged row; legacy warmup remains available for old readers. */
+export function normalizeLoggedSet(input, target = {}) {
+  const source = objectOf(input)
+  return { ...source, phase: phaseForSet(source, phaseForTarget(target)) }
+}
+
+/** Non-destructively migrate an entry and each row to explicit canonical phases. */
+export function normalizeEntry(input, defaults = {}) {
+  const source = objectOf(input)
+  const targetSource = objectOf(source.target)
+  const phase = phaseForSet(source, phaseForTarget(targetSource, phaseForTarget(defaults)))
+  const target = { ...targetSource, phase }
+  const sets = (Array.isArray(source.sets) ? source.sets : [])
+    .map(set => normalizeLoggedSet(set, target))
+  return { ...source, phase, target, sets }
+}
+
 // A row's shape beyond warm-up/work: 'straight' (default), 'dropset' (a main set followed by
 // weight drops logged with no rest) or 'restpause' (an activation set followed by short-rest
 // bursts). Both extras ride on the row itself — same card, not a new set in the array — the
