@@ -383,25 +383,50 @@ export function applyIntensifierPlan(sets, cfg) {
   const work = { w, r: totalReps, done: false, type: 'restpause', clusters: splitBurstReps(totalReps).map(r => ({ r, restSec })) }
   return [warmup, work]
 }
+export function setVolumeForPhase(set, target = {}) {
+  if (set?.done !== true || modeForSet(set, target) !== 'reps') return 0
+  return (set.w || 0) * (set.r || 0) + extraVolumeOf(set)
+}
+
+export function entryVolumeByPhase(entry = {}) {
+  const volume = { warmup: 0, work: 0 }
+  ;(Array.isArray(entry.sets) ? entry.sets : []).forEach(set => {
+    volume[phaseForSet(set)] += setVolumeForPhase(set, entry.target || entry)
+  })
+  return volume
+}
+
+export function workoutVolumeByPhase(workout = {}) {
+  const volume = { warmup: 0, work: 0 }
+  ;(Array.isArray(workout.entries) ? workout.entries : []).forEach(entry => {
+    const entryVolume = entryVolumeByPhase(entry)
+    volume.warmup += entryVolume.warmup
+    volume.work += entryVolume.work
+  })
+  return volume
+}
+
+export function setsDoneByPhase(workout = {}) {
+  const counts = { warmup: 0, work: 0 }
+  ;(Array.isArray(workout.entries) ? workout.entries : []).forEach(entry => {
+    ;(Array.isArray(entry.sets) ? entry.sets : []).forEach(set => {
+      if (set?.done === true) counts[phaseForSet(set)] += 1
+    })
+  })
+  return counts
+}
+
 export function workoutVolume(w) {
-  let v = 0
   // No special case for unilateral work: a per-side set logs its total, so both sides are
-  // already in the rep count that arrives here. Drop-set drops and rest-pause bursts add their
-  // own weight x reps on top of the row's main/activation set (see extraVolumeOf).
-  // Warm-ups are excluded here as everywhere else. The config sheet promises it in so many
-  // words ("left out of volume, records and progression") and every other consumer already
-  // does it; this line was the one that did not, which only stopped being harmless when a
-  // routine started planning warm-ups by default. The number is written into the saved
-  // workout, so an inflated one would stay wrong forever.
-  w.entries.forEach(e => e.sets.forEach(s => {
-    if (s.done && !isWarmupRow(s)) v += (s.w || 0) * (s.r || 0) + extraVolumeOf(s)
-  }))
-  return v
+  // already in the rep count that arrives here. Drop-set drops add their own weight x reps;
+  // rest-pause clusters remain a display breakdown and are not double-counted. The public
+  // total continues to exclude warm-ups; callers that need both phases use the aggregate.
+  const volume = workoutVolumeByPhase(w)
+  return volume.work
 }
 export function setsDone(w) {
-  let n = 0
-  w.entries.forEach(e => e.sets.forEach(s => { if (s.done) n++ }))
-  return n
+  const counts = setsDoneByPhase(w)
+  return counts.warmup + counts.work
 }
 export function setsDoneActive(A) {
   let n = 0

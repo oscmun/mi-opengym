@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { modeOf, isTimed, fmtSec, setLabel, defaultConfig, buildSets, freestyleConfig, exLine, workoutVolume, bestWeightFor, bestWeightForEntry, effortOf, stepEffort, capEffort, isBw, isPerSide, sideReps, repStep, cascadeWeight, insertWarmupRow, removeRowAt, workSetsDone, pairAdjacent, unpairSuperset, supersetUnits, applyIntensifierPlan, pinnedNoteFor, exNoteFor } from './history.js'
+import { modeOf, isTimed, fmtSec, setLabel, defaultConfig, buildSets, freestyleConfig, exLine, workoutVolume, setVolumeForPhase, entryVolumeByPhase, workoutVolumeByPhase, setsDoneByPhase, bestWeightFor, bestWeightForEntry, effortOf, stepEffort, capEffort, isBw, isPerSide, sideReps, repStep, cascadeWeight, insertWarmupRow, removeRowAt, workSetsDone, pairAdjacent, unpairSuperset, supersetUnits, applyIntensifierPlan, pinnedNoteFor, exNoteFor } from './history.js'
 import { EXDB } from './exercises.js'
 
 // Real ids out of the shipped catalogue, so the body-part fallback is exercised for real.
@@ -576,6 +576,23 @@ describe('workoutVolume', () => {
   it('leaves an unloaded bodyweight set at zero volume rather than inventing a number', () => {
     const w = { entries: [{ id: BW, target: { bodyweight: true }, sets: [{ w: 0, r: 20, done: true }] }] }
     expect(workoutVolume(w)).toBe(0)
+  })
+
+  it('reports completed set counts and current-main tonnage by canonical phase', () => {
+    const workout = { entries: [{ target: { mode: 'reps' }, sets: [
+      { warmup: true, done: true, w: 20, r: 10 },
+      { phase: 'warm-up', done: true, w: 30, r: 5 },
+      { phase: 'work', done: true, w: 100, r: 5, type: 'dropset', drops: [{ w: 80, r: 5 }] },
+      { phase: 'work', done: true, w: 100, r: 8, type: 'restpause', clusters: [{ r: 5 }, { r: 3 }] },
+      { phase: 'work', done: false, w: 200, r: 10 },
+      { phase: 'work', mode: 'time', done: true, w: 40, sec: 60 },
+    ] }] }
+
+    expect(setVolumeForPhase(workout.entries[0].sets[2], workout.entries[0].target)).toBe(900)
+    expect(entryVolumeByPhase(workout.entries[0])).toEqual({ warmup: 350, work: 1700 })
+    expect(workoutVolumeByPhase(workout)).toEqual({ warmup: 350, work: 1700 })
+    expect(setsDoneByPhase(workout)).toEqual({ warmup: 2, work: 3 })
+    expect(workoutVolume(workout)).toBe(1700)
   })
 
   it('recognizes both warm-up schemas in work-set counts', () => {

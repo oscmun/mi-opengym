@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   phaseForSet, isWarmupRow, modeForSet, modeForEntry,
+  normalizePhaseList, isWarmupOnlyTarget,
+  normalizePlannedSet, normalizeLoggedSet, normalizeEntry,
   setType, isDropSet, isRestPauseSet, dropsOf, clustersOf, extraVolumeOf,
   addDrop, addCluster, removeDropAt, removeClusterAt, setDropAt, setClusterAt,
   nextDropWeight, nextBurstReps, splitBurstReps,
@@ -12,6 +14,57 @@ describe('phaseForSet / isWarmupRow', () => {
     expect(isWarmupRow({ warmup: true })).toBe(true)
     expect(isWarmupRow({ phase: 'work' })).toBe(false)
     expect(isWarmupRow({})).toBe(false)
+  })
+
+  it('gives an explicit canonical phase precedence over the legacy boolean and normalizes aliases', () => {
+    expect(phaseForSet({ phase: ' WORK ', warmup: true })).toBe('work')
+    expect(phaseForSet({ phase: ' Warm_Up ' })).toBe('warmup')
+    expect(phaseForSet({ phase: 'warm-up' })).toBe('warmup')
+  })
+})
+
+describe('phase normalization', () => {
+  it('normalizes selected phase aliases without inventing phases from unknown values', () => {
+    expect(normalizePhaseList([' Warm-Up ', 'work', 'warm_up', 'unknown'])).toEqual(['warmup', 'work'])
+    expect(normalizePhaseList(undefined)).toBeNull()
+    expect(isWarmupOnlyTarget({ phases: ['warm-up'] })).toBe(true)
+    expect(isWarmupOnlyTarget({ phases: ['warmup', 'work'] })).toBe(false)
+  })
+
+  it('canonicalizes planned and logged writes without mutating or dropping legacy fields', () => {
+    const planned = { phase: ' Warm-Up ', note: 'keep', target: { reps: 8 } }
+    const logged = { warmup: true, w: 20, r: 8, done: true, note: 'keep' }
+
+    expect(normalizePlannedSet(planned)).toEqual({
+      phase: 'warmup', note: 'keep', target: { reps: 8, phase: 'warmup' },
+    })
+    expect(normalizeLoggedSet(logged)).toEqual({ ...logged, phase: 'warmup' })
+    expect(planned.target.phase).toBeUndefined()
+    expect(logged.phase).toBeUndefined()
+  })
+
+  it('does not label an authoritative warm-up-only planned block as work', () => {
+    expect(normalizePlannedSet({ target: { phases: ['warm-up'], reps: 8 } })).toEqual({
+      phase: 'warmup', target: { phases: ['warm-up'], reps: 8, phase: 'warmup' },
+    })
+  })
+
+  it('migrates mixed legacy entries row by row and survives JSON persistence readback', () => {
+    const legacy = {
+      id: 'bench', note: 'keep', target: { mode: 'reps' },
+      sets: [
+        { warmup: true, w: 20, r: 8, done: true },
+        { phase: 'WORK', w: 60, r: 5, done: true, type: 'dropset', drops: [{ w: 50, r: 5 }] },
+      ],
+    }
+
+    const normalized = normalizeEntry(legacy)
+    expect(normalized.note).toBe('keep')
+    expect(normalized.target).toEqual({ mode: 'reps', phase: 'work' })
+    expect(normalized.sets.map(set => set.phase)).toEqual(['warmup', 'work'])
+    expect(normalized.sets[1].drops).toEqual([{ w: 50, r: 5 }])
+    expect(JSON.parse(JSON.stringify(normalized))).toEqual(normalized)
+    expect(legacy.target.phase).toBeUndefined()
   })
 })
 
