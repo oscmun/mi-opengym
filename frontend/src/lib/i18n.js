@@ -5,12 +5,12 @@
 
 import { useSyncExternalStore } from 'react'
 import {
-  LANGS, INSTR_LANGS, EXERCISE_NAME_LANGS, DATE_LOCALES,
+  LANGS, INSTR_LANGS, EXERCISE_NAME_LANGS, DATE_LOCALES, RTL_LANGS,
   getLang, dateLocale, t, instrFor, exerciseNameFor, exerciseNameSearchText, getVersion, _setLangState
 } from './i18n-core.js'
 
 export {
-  LANGS, INSTR_LANGS, EXERCISE_NAME_LANGS, DATE_LOCALES,
+  LANGS, INSTR_LANGS, EXERCISE_NAME_LANGS, DATE_LOCALES, RTL_LANGS,
   getLang, dateLocale, t, instrFor, exerciseNameFor, exerciseNameSearchText
 }
 
@@ -36,6 +36,8 @@ export async function setLang(l) {
       : (await exerciseNamePacks['../exercise-names/' + l + '.js']()).default
   } catch (e) { exerciseNames = null }
   _setLangState(l, dict, instr, exerciseNames)
+  document.documentElement.lang = l
+  document.documentElement.dir = RTL_LANGS.has(l) ? 'rtl' : 'ltr'
   notify()
 }
 
