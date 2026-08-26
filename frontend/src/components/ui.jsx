@@ -145,7 +145,10 @@ export function Slider({ value, min = 0, max = 100, step = 1, onChange, classNam
     const el = ref.current
     if (!el) return value
     const r = el.getBoundingClientRect()
-    const f = Math.min(1, Math.max(0, (clientX - r.left) / r.width))
+    // The fraction is read from the physical left edge, then mirrored in RTL where the
+    // minimum sits at the inline-start (right) end of the track.
+    let f = Math.min(1, Math.max(0, (clientX - r.left) / r.width))
+    if (document.documentElement.dir === 'rtl') f = 1 - f
     const raw = min + f * (max - min)
     const snapped = Math.round(raw / step) * step
     // step can be fractional (0.1) — round away binary noise
@@ -170,8 +173,11 @@ export function Slider({ value, min = 0, max = 100, step = 1, onChange, classNam
   }, [drag, onChange, posToValue])
 
   const key = e => {
-    const d = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? step
-      : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -step : 0
+    // The arrow pointing at the inline-end (max) end still increases; in RTL that is Left.
+    const inc = document.documentElement.dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight'
+    const dec = document.documentElement.dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft'
+    const d = e.key === inc || e.key === 'ArrowUp' ? step
+      : e.key === dec || e.key === 'ArrowDown' ? -step : 0
     if (!d) return
     e.preventDefault()
     onChange(Math.min(max, Math.max(min, Math.round((value + d) * 1000) / 1000)))
@@ -189,7 +195,7 @@ export function Slider({ value, min = 0, max = 100, step = 1, onChange, classNam
       onPointerDown={e => { e.currentTarget.setPointerCapture?.(e.pointerId); setDrag(true); onChange(posToValue(e.clientX)) }}
     >
       <span className="sld-track"><span className="sld-fill" style={{ width: pct + '%' }} /></span>
-      <span className="sld-knob" style={{ left: pct + '%' }} />
+      <span className="sld-knob" style={{ insetInlineStart: pct + '%' }} />
     </div>
   )
 }

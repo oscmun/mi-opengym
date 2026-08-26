@@ -36,6 +36,8 @@ export async function setLang(l) {
       : (await exerciseNamePacks['../exercise-names/' + l + '.js']()).default
   } catch (e) { exerciseNames = null }
   _setLangState(l, dict, instr, exerciseNames)
+  document.documentElement.lang = l
+  document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr'
   notify()
 }
 
