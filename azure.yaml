@@ -1,0 +1,19 @@
+name: opengym
+metadata:
+  template: opengym-appservice@0.1.0
+services:
+  web:
+    project: .
+    host: appservice
+    language: docker
+    docker:
+      path: deploy/azure/Dockerfile
+      context: .
+hooks:
+  postprovision:
+    posix:
+      shell: sh
+      run: ./deploy/azure/hooks/postprovision.sh
+    windows:
+      shell: pwsh
+      run: ./deploy/azure/hooks/postprovision.ps1
