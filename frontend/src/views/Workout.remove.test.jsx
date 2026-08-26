@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import Workout, { removeActiveExercise } from './Workout.jsx'
 import { DEF, useStore } from '../store/useStore.js'
 import { useUI } from '../store/useUI.js'
+import { LANGS } from '../lib/i18n-core.js'
 
 vi.mock('../lib/sound.js', () => ({ beep: vi.fn(), vibrate: vi.fn() }))
 vi.mock('../lib/api.js', () => ({ api: vi.fn(() => Promise.resolve({})) }))
@@ -110,8 +111,9 @@ describe('remove-exercise locale coverage', () => {
   ]
   const packs = import.meta.glob('../locales/*.js', { eager: true, import: 'default' })
 
-  it('defines every new prompt in all twelve locale packs', () => {
-    expect(Object.keys(packs)).toHaveLength(12)
+  it('defines every new prompt in every locale pack', () => {
+    expect(Object.keys(packs)).toHaveLength(Object.keys(LANGS).filter(l => l !== 'en').length)
+    expect(Object.keys(packs).some(p => p.endsWith('/ar.js'))).toBe(true)
     Object.entries(packs).forEach(([path, pack]) => {
       required.forEach(key => expect(pack, `${path} is missing ${key}`).toHaveProperty(key))
     })

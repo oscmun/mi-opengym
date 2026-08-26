@@ -28,12 +28,30 @@ export const DEF = {
 }
 const clone = o => JSON.parse(JSON.stringify(o))
 
+// First run on an Arabic-speaking device starts in Arabic rather than English; the
+// boot script in index.html mirrors this check for the pre-paint direction. The
+// choice is persisted like any other setting once the user picks a language.
+const detectedLang = () => {
+  try {
+    const l = (navigator.language || '').toLowerCase()
+    if (l === 'ar' || l.startsWith('ar-')) return 'ar'
+  } catch (e) { /* ignore */ }
+  return 'en'
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) return Object.assign(clone(DEF), JSON.parse(raw))
+    if (raw) {
+      const saved = JSON.parse(raw)
+      const s = Object.assign(clone(DEF), saved)
+      if (!saved.lang) s.lang = detectedLang()
+      return s
+    }
   } catch (e) { /* ignore */ }
-  return clone(DEF)
+  const s = clone(DEF)
+  s.lang = detectedLang()
+  return s
 }
 
 const hasData = st => !!((st.workouts || []).length || (st.routines || []).length || (st.bodyweight || []).length)
