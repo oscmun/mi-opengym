@@ -16,7 +16,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
 
       - name: Set up Java JDK 17
         uses: actions/setup-java@v4
@@ -24,16 +24,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install dependencies (Root)
+      - name: Install root dependencies
         run: npm install
 
-      - name: Install dependencies (Frontend)
+      - name: Install frontend dependencies (if exists)
         run: |
           if [ -d "frontend" ]; then
             cd frontend && npm install && cd ..
           fi
 
-      - name: Build Web App
+      - name: Build Web Assets
         run: |
           if [ -d "frontend" ]; then
             cd frontend && npm run build && cd ..
@@ -41,24 +41,15 @@ jobs:
             npm run build
           fi
 
-      - name: Add and Sync Capacitor Android
-        run: |
-          npx cap add android || true
-          npx cap sync android
-
-      - name: Make Gradlew Executable
-        run: |
-          if [ -f "android/gradlew" ]; then
-            chmod +x android/gradlew
-          fi
-
-      - name: Build Debug APK
-        run: |
-          cd android
-          ./gradlew assembleDebug
+      - name: Build Capacitor Android App
+        uses: ionic-team/capacitor-action@v1
+        with:
+          project-path: '.'
+          platform: 'android'
+          android-output-folder: 'android/app/build/outputs/apk/debug'
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: opengym-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/debug/*.apk
