@@ -673,5 +673,12 @@ export default {
   'Add session note': 'Antrenman notu ekle',
   'Edit session note': 'Antrenman notunu düzenle',
   'How the session went as a whole.': 'Antrenmanın genel olarak nasıl geçtiği.',
-  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'Rest-pause her zaman bu tekrar sayısında bir ısınma seti ve bir rest-pause çalışma seti olarak çalışılır — “Setler” kullanılmaz.'
+  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'Rest-pause her zaman bu tekrar sayısında bir ısınma seti ve bir rest-pause çalışma seti olarak çalışılır — “Setler” kullanılmaz.',
+  'Update to {0}?': '{0} sürümüne güncellensin mi?',
+  'The latest version will be downloaded and the installer will open.': 'En son sürüm indirilecek ve yükleyici açılacak.',
+  'Download & Install': 'İndir ve Kur',
+  'Update failed: {0}': 'Güncelleme başarısız: {0}',
+  'openGym v{0} available': 'openGym v{0} mevcut',
+  'Starting download…': 'İndirme başlatılıyor…',
+  'Downloading update…': 'Güncelleme indiriliyor…',
 }

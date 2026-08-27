@@ -673,5 +673,12 @@ export default {
   'Add session note': 'Добавить заметку',
   'Edit session note': 'Изменить заметку',
   'How the session went as a whole.': 'Как прошла тренировка в целом.',
-  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'Rest-pause всегда выполняется как один разминочный подход с этим числом повторений и один рабочий подход rest-pause — «Подходы» не используются.'
+  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'Rest-pause всегда выполняется как один разминочный подход с этим числом повторений и один рабочий подход rest-pause — «Подходы» не используются.',
+  'Update to {0}?': 'Обновить до {0}?',
+  'The latest version will be downloaded and the installer will open.': 'Последняя версия будет загружена и откроется установщик.',
+  'Download & Install': 'Скачать и установить',
+  'Update failed: {0}': 'Ошибка обновления: {0}',
+  'openGym v{0} available': 'openGym v{0} доступна',
+  'Starting download…': 'Начало загрузки…',
+  'Downloading update…': 'Загрузка обновления…',
 }

@@ -673,5 +673,12 @@ export default {
   'Add session note': 'Adicionar nota da sessão',
   'Edit session note': 'Editar nota da sessão',
   'How the session went as a whole.': 'Como correu a sessão no seu todo.',
-  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'O rest-pause treina sempre como uma série de aquecimento com estas repetições e uma série de trabalho rest-pause — «Séries» não é usado.'
+  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'O rest-pause treina sempre como uma série de aquecimento com estas repetições e uma série de trabalho rest-pause — «Séries» não é usado.',
+  'Update to {0}?': 'Atualizar para {0}?',
+  'The latest version will be downloaded and the installer will open.': 'A versão mais recente será transferida e o instalador será aberto.',
+  'Download & Install': 'Transferir e instalar',
+  'Update failed: {0}': 'Falha na atualização: {0}',
+  'openGym v{0} available': 'openGym v{0} disponível',
+  'Starting download…': 'A iniciar transferência…',
+  'Downloading update…': 'A transferir atualização…',
 }
