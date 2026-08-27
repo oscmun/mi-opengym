@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, forwardRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore, DEF, hasData } from '../store/useStore.js'
 import { useUI } from '../store/useUI.js'
@@ -10,6 +10,7 @@ import { wakeLockSupported } from '../lib/wakelock.js'
 import { t, LANGS, INSTR_LANGS } from '../lib/i18n.js'
 import { DEMO, REPO } from '../lib/demo.js'
 import { MOBILE, shareExport, syncReminder } from '../lib/mobile.js'
+import { checkForUpdate, downloadAndInstall } from '../lib/update.js'
 import { ConnectSheet } from './MobileOnboarding.jsx'
 import { loadStarterPlan, confirmSheet, importFromApp, equipmentProfileSheet } from '../sheets.jsx'
 import Icon from '../components/Icon.jsx'
@@ -24,6 +25,56 @@ export default function Settings() {
   const fileRef = useRef(null)
   const importRef = useRef(null)
   const wakeOK = wakeLockSupported()
+
+  // --- update check state ---
+  // --- update check state ---
+  const [updateInfo, setUpdateInfo] = useState(null) // { hasUpdate, latestVersion, apkUrl, hashUrl } | null
+
+  useEffect(() => {
+    checkForUpdate().then(setUpdateInfo).catch(() => {})
+  }, [])
+
+  const onUpdateRowClick = () => {
+    if (!updateInfo?.hasUpdate) return
+    if (updateInfo.apkUrl) {
+      // Start download & install
+      const version = updateInfo.latestVersion
+      confirmSheet({
+        title: t('Update to {0}?', version),
+        message: t('The latest version will be downloaded and the installer will open.'),
+        confirmText: t('Download & Install'),
+        onConfirm: async () => {
+          // Open a progress sheet
+          let closeProgress = null
+          let setProgress = null
+          useUI.getState().openSheet(close => {
+            closeProgress = close
+            return <DownloadProgress ref={fn => { setProgress = fn }} />
+          }, { locked: true })
+          try {
+            // Fetch the expected SHA-256 hash if available
+            let expectedHash = null
+            if (updateInfo.hashUrl) {
+              try {
+                const hashRes = await fetch(updateInfo.hashUrl)
+                if (hashRes.ok) expectedHash = (await hashRes.text()).split(/\s/)[0]
+              } catch (e) { /* proceed without hash verification */ }
+            }
+            await downloadAndInstall(updateInfo.apkUrl, expectedHash, (received, total) => {
+              if (setProgress) setProgress(received, total)
+            })
+            if (closeProgress) closeProgress()
+          } catch (e) {
+            if (closeProgress) closeProgress()
+            toast(t('Update failed: {0}', e.message))
+          }
+        },
+      })
+    } else {
+      // Update available but no APK asset — open the releases page
+      window.open('https://gitlab.com/DuarteSantos8/opengym/-/releases', '_blank', 'noopener')
+    }
+  }
 
   const doExport = async () => {
     const json = JSON.stringify(S, null, 2)
@@ -199,6 +250,9 @@ export default function Settings() {
 
     {/* ---------- data: fill it, bring things over, back it up, wipe it ---------- */}
     <Section title={t('Data')}>
+      {updateInfo?.hasUpdate && <Row icon="info" iconTint="var(--purple)" title={t('openGym v{0} available', updateInfo.latestVersion)}
+        accessory="chevron"
+        onClick={onUpdateRowClick} />}
       <Row icon="sparkles" iconTint="var(--acc)" title={t('Load starter plan (PPL)')} accessory="chevron" onClick={loadStarterPlan} />
       <Row icon="shuffle" iconTint="var(--teal)" title={t('Import from another app')}
         subtitle={t('FitNotes, Strong, Hevy — or body weight from Apple Health')}
@@ -248,6 +302,32 @@ const EFFORT_ROWS = [
 // RIR 2 / RPE 8: the row a working set usually lands on — the anchor the others are read
 // against. Not where the stepper starts; + walks up from the bottom of the scale.
 const EFFORT_TYPICAL = 2
+
+// Download progress sheet — receives a ref callback that exposes a (received, total) setter.
+// Uses forwardRef so the caller can push byte counts in without re-rendering the whole Settings tree.
+const DownloadProgress = forwardRef(function DownloadProgress(_, ref) {
+  const [pct, setPct] = useState(0)
+  const [text, setText] = useState(t('Starting download…'))
+  // Expose a setter the caller can invoke directly
+  if (ref) ref(function update(received, total) {
+    if (total > 0) {
+      const p = Math.min(100, Math.round((received / total) * 100))
+      setPct(p)
+      setText(t('{0} %', p))
+    } else {
+      setText(t('{0} MB', (received / 1_000_000).toFixed(1)))
+    }
+  })
+  return (
+    <div style={{ textAlign: 'center', padding: '8px 0' }}>
+      <h3>{t('Downloading update…')}</h3>
+      <div style={{ margin: '16px 0', height: 6, borderRadius: 3, background: 'var(--fill-3)', overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: pct + '%', background: 'var(--acc)', borderRadius: 3, transition: 'width .2s' }} />
+      </div>
+      <div className="muted small">{text}</div>
+    </div>
+  )
+})
 
 function effortHelpSheet() {
   useUI.getState().openSheet(close => <>

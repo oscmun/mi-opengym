@@ -673,5 +673,12 @@ export default {
   'Add session note': '운동 메모 추가',
   'Edit session note': '운동 메모 편집',
   'How the session went as a whole.': '이번 운동이 전체적으로 어땠는지.',
-  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': '레스트포즈는 항상 이 횟수의 워밍업 세트 하나와 레스트포즈 작업 세트 하나로 진행됩니다 — ‘세트’는 사용하지 않습니다.'
+  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': '레스트포즈는 항상 이 횟수의 워밍업 세트 하나와 레스트포즈 작업 세트 하나로 진행됩니다 — ‘세트’는 사용하지 않습니다.',
+  'Update to {0}?': '{0}(으)로 업데이트하시겠습니까?',
+  'The latest version will be downloaded and the installer will open.': '최신 버전이 다운로드되고 설치 프로그램이 열립니다.',
+  'Download & Install': '다운로드 및 설치',
+  'Update failed: {0}': '업데이트 실패: {0}',
+  'openGym v{0} available': 'openGym v{0} 사용 가능',
+  'Starting download…': '다운로드 시작 중…',
+  'Downloading update…': '업데이트 다운로드 중…',
 }

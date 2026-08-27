@@ -673,5 +673,12 @@ export default {
   'Add session note': 'सत्र का नोट जोड़ें',
   'Edit session note': 'सत्र का नोट बदलें',
   'How the session went as a whole.': 'पूरा सत्र कैसा रहा।',
-  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'रेस्ट-पॉज़ हमेशा इसी रेप्स संख्या के एक वार्म-अप सेट और एक रेस्ट-पॉज़ वर्क सेट के रूप में किया जाता है — “सेट” का उपयोग नहीं होता।'
+  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'रेस्ट-पॉज़ हमेशा इसी रेप्स संख्या के एक वार्म-अप सेट और एक रेस्ट-पॉज़ वर्क सेट के रूप में किया जाता है — “सेट” का उपयोग नहीं होता।',
+  'Update to {0}?': '{0} में अपडेट करें?',
+  'The latest version will be downloaded and the installer will open.': 'नवीनतम संस्करण डाउनलोड होगा और इंस्टॉलर खुलेगा।',
+  'Download & Install': 'डाउनलोड और इंस्टॉल करें',
+  'Update failed: {0}': 'अपडेट विफल: {0}',
+  'openGym v{0} available': 'openGym v{0} उपलब्ध',
+  'Starting download…': 'डाउनलोड शुरू हो रहा है…',
+  'Downloading update…': 'अपडेट डाउनलोड हो रहा है…',
 }

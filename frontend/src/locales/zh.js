@@ -673,5 +673,12 @@ export default {
   'Add session note': '添加训练备注',
   'Edit session note': '编辑训练备注',
   'How the session went as a whole.': '这次训练整体感觉如何。',
-  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'Rest-pause 始终按这个次数练一个热身组，再加一个 rest-pause 正式组 —— 不使用“组数”。'
+  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'Rest-pause 始终按这个次数练一个热身组，再加一个 rest-pause 正式组 —— 不使用“组数”。',
+  'Update to {0}?': '更新到 {0}？',
+  'The latest version will be downloaded and the installer will open.': '将下载最新版本并打开安装程序。',
+  'Download & Install': '下载并安装',
+  'Update failed: {0}': '更新失败：{0}',
+  'openGym v{0} available': 'openGym v{0} 可用',
+  'Starting download…': '正在开始下载…',
+  'Downloading update…': '正在下载更新…',
 }

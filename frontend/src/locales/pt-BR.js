@@ -302,7 +302,14 @@ export const PT_BR_OVERRIDES = {
   'Brings it up again the next time you train this exercise.': 'Aparece de novo na próxima vez que você treinar este exercício.',
   'Seat height, pin position, a form cue — shown every session.': 'Altura do banco, posição do pino, uma dica de execução — aparece em todos os treinos.',
   'How the session went as a whole.': 'Como foi o treino como um todo.',
-  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'O rest-pause sempre treina como uma série de aquecimento com essas repetições e uma série de trabalho rest-pause — “Séries” não é usado.'
+  'Rest-pause always trains as one warm-up set at this rep count, then one rest-pause work set — "Sets" is not used.': 'O rest-pause sempre treina como uma série de aquecimento com essas repetições e uma série de trabalho rest-pause — “Séries” não é usado.',
+  'Update to {0}?': 'Atualizar para {0}?',
+  'The latest version will be downloaded and the installer will open.': 'A versão mais recente será baixada e o instalador será aberto.',
+  'Download & Install': 'Baixar e instalar',
+  'Update failed: {0}': 'Falha na atualização: {0}',
+  'openGym v{0} available': 'openGym v{0} disponível',
+  'Starting download…': 'Iniciando download…',
+  'Downloading update…': 'Baixando atualização…',
 }
 
 export default { ...pt, ...PT_BR_OVERRIDES }
